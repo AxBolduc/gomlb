@@ -106,7 +106,7 @@ gomlb -d YYYY-MM-DD
   - [x] Score Display
   - [x] Line Score
   - [x] Batters Box Score
-  - [ ] Pitchers Box Score
+  - [x] Pitchers Box Score
   - [ ] Other Box Score Info
 - [ ] Player View
   - [ ] Bio Information

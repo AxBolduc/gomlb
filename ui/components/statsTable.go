@@ -7,13 +7,8 @@ import (
 	"github.com/evertras/bubble-table/table"
 )
 
-func BuildPlayerStatTable(players []mlb.BoxscorePlayer, initialFocus bool) table.Model {
-	playerNameMaxLen := 0
-	for _, player := range players {
-		if len(player.Person.FullName) > playerNameMaxLen {
-			playerNameMaxLen = len(player.Person.FullName)
-		}
-	}
+func BuildBatterStatsTable(players []mlb.BoxscorePlayer, initialFocus bool) table.Model {
+	playerNameMaxLen := getPlayerNameMaxLen(players)
 	tableColumns := []table.Column{
 		table.NewColumn("playerName", "Player", playerNameMaxLen+1),
 		table.NewColumn("pos", "Pos", 3).WithStyle(lipgloss.NewStyle().AlignHorizontal(lipgloss.Center)),
@@ -27,30 +22,54 @@ func BuildPlayerStatTable(players []mlb.BoxscorePlayer, initialFocus bool) table
 		table.NewFlexColumn("ops", "OPS", 1).WithStyle(lipgloss.NewStyle().AlignHorizontal(lipgloss.Center)),
 	}
 
-	// tableColumns := []table.Column{
-	// 	table.NewColumn("playerName", "Player", playerNameMaxLen+1),
-	// 	table.NewColumn("pos", "Pos", 3),
-	// 	table.NewColumn("ab", "AB", 2),
-	// 	table.NewColumn("r", "R", 1),
-	// 	table.NewColumn("h", "H", 1),
-	// 	table.NewColumn("rbi", "RBI", 3),
-	// 	table.NewColumn("bb", "BB", 2),
-	// 	table.NewColumn("k", "K", 1),
-	// 	table.NewColumn("avg", "AVG", 5),
-	// 	table.NewColumn("ops", "OPS", 5),
-	// 	table.NewFlexColumn("pad", "", 1),
-	// }
 	lineup := []table.Row{}
 
 	for _, player := range players {
-		lineup = append(lineup, boxscorePlayerToTableRow(player))
+		lineup = append(lineup, boxscorePlayerToBatterTableRow(player))
 	}
 
 	return table.New(tableColumns).WithRows(lineup).Focused(initialFocus).WithBaseStyle(lipgloss.NewStyle().AlignHorizontal(lipgloss.Left))
 
 }
 
-func boxscorePlayerToTableRow(player mlb.BoxscorePlayer) table.Row {
+func getPlayerNameMaxLen(players []mlb.BoxscorePlayer) int {
+	playerNameMaxLen := 0
+	for _, player := range players {
+		if len(player.Person.FullName) > playerNameMaxLen {
+			playerNameMaxLen = len(player.Person.FullName)
+		}
+	}
+
+	return playerNameMaxLen
+}
+
+func BuildPitcherStatsTable(players []mlb.BoxscorePlayer) table.Model {
+	playerNameMaxLen := getPlayerNameMaxLen(players)
+
+	tableColumns := []table.Column{
+		table.NewColumn("playerName", "Player", playerNameMaxLen+1),
+		table.NewColumn("pos", "Pos", 3).WithStyle(lipgloss.NewStyle().AlignHorizontal(lipgloss.Center)),
+		table.NewFlexColumn("ip", "IP", 1).WithStyle(lipgloss.NewStyle().AlignHorizontal(lipgloss.Center)),
+		table.NewFlexColumn("h", "H", 1).WithStyle(lipgloss.NewStyle().AlignHorizontal(lipgloss.Center)),
+		table.NewFlexColumn("r", "R", 1).WithStyle(lipgloss.NewStyle().AlignHorizontal(lipgloss.Center)),
+		table.NewFlexColumn("er", "ER", 1).WithStyle(lipgloss.NewStyle().AlignHorizontal(lipgloss.Center)),
+		table.NewFlexColumn("bb", "BB", 1).WithStyle(lipgloss.NewStyle().AlignHorizontal(lipgloss.Center)),
+		table.NewFlexColumn("k", "K", 1).WithStyle(lipgloss.NewStyle().AlignHorizontal(lipgloss.Center)),
+		table.NewFlexColumn("hr", "HR", 1).WithStyle(lipgloss.NewStyle().AlignHorizontal(lipgloss.Center)),
+		table.NewFlexColumn("era", "ERA", 1).WithStyle(lipgloss.NewStyle().AlignHorizontal(lipgloss.Center)),
+	}
+
+	lineup := []table.Row{}
+
+	for _, player := range players {
+		lineup = append(lineup, boxscorePlayerToPitcherTableRow(player))
+	}
+
+	return table.New(tableColumns).WithRows(lineup).Focused(false).WithBaseStyle(lipgloss.NewStyle().AlignHorizontal(lipgloss.Left))
+
+}
+
+func boxscorePlayerToBatterTableRow(player mlb.BoxscorePlayer) table.Row {
 	row := table.NewRow(table.RowData{
 		"playerName": player.Person.FullName,
 		"pos":        player.Position.Abbreviation,
@@ -62,6 +81,23 @@ func boxscorePlayerToTableRow(player mlb.BoxscorePlayer) table.Row {
 		"k":          player.Stats.Batting.StrikeOuts,
 		"avg":        player.SeasonStats.Batting.Avg,
 		"ops":        player.SeasonStats.Batting.Ops,
+	})
+
+	return row
+}
+
+func boxscorePlayerToPitcherTableRow(player mlb.BoxscorePlayer) table.Row {
+	row := table.NewRow(table.RowData{
+		"playerName": player.Person.FullName,
+		"pos":        player.Position.Abbreviation,
+		"ip":         player.Stats.Pitching.InningsPitched,
+		"h":          player.Stats.Pitching.Hits,
+		"r":          player.Stats.Pitching.Runs,
+		"er":         player.Stats.Pitching.EarnedRuns,
+		"bb":         player.Stats.Pitching.BaseOnBalls,
+		"k":          player.Stats.Pitching.StrikeOuts,
+		"hr":         player.Stats.Pitching.HomeRuns,
+		"era":        player.SeasonStats.Pitching.Era,
 	})
 
 	return row
