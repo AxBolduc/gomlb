@@ -1,4 +1,4 @@
-module sports-cli
+module gomlb
 
 go 1.22.0
 

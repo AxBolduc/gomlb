@@ -2,7 +2,7 @@ package components
 
 import (
 	"fmt"
-	"sports-cli/api/mlb"
+	"gomlb/api/mlb"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/evertras/bubble-table/table"

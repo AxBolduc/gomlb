@@ -2,10 +2,10 @@ package ui
 
 import (
 	"fmt"
+	"gomlb/api/mlb"
+	"gomlb/api/mlb/repositories"
+	"gomlb/ui/constants"
 	"os"
-	"sports-cli/api/mlb"
-	"sports-cli/api/mlb/repositories"
-	"sports-cli/ui/constants"
 	"time"
 
 	"github.com/charmbracelet/bubbles/key"

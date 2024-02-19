@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"sports-cli/ui"
+	"gomlb/ui"
 	"time"
 
 	"github.com/spf13/cobra"

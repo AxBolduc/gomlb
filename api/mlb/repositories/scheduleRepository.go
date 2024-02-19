@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"encoding/json"
-	"sports-cli/api/mlb"
+	"gomlb/api/mlb"
 	"time"
 )
 

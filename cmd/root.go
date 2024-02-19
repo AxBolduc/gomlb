@@ -7,7 +7,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "sports-cli",
+	Use:   "gomlb",
 	Short: "CLI for sports",
 	Long:  "CLI application for multiple sports",
 }

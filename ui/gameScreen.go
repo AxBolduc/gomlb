@@ -2,11 +2,11 @@ package ui
 
 import (
 	"fmt"
-	"sports-cli/api/mlb"
-	"sports-cli/api/mlb/repositories"
-	"sports-cli/ui/components"
-	scoretext "sports-cli/ui/components"
-	"sports-cli/ui/constants"
+	"gomlb/api/mlb"
+	"gomlb/api/mlb/repositories"
+	"gomlb/ui/components"
+	scoretext "gomlb/ui/components"
+	"gomlb/ui/constants"
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"

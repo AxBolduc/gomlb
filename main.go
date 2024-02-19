@@ -1,7 +1,7 @@
 package main
 
 import (
-	"sports-cli/cmd"
+	"gomlb/cmd"
 )
 
 func main() {

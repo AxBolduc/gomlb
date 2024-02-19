@@ -5,8 +5,8 @@ https://github.com/dylantientcheu/nbacli/blob/master/ui/gameboard/scoretext/scor
 package components
 
 import (
+	"gomlb/ui/constants"
 	"os"
-	"sports-cli/ui/constants"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
