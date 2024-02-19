@@ -80,7 +80,7 @@
 ## Installation
 
 ```bash
-   go install github.com/axbolduc/gomlb
+   go install github.com/axbolduc/gomlb@latest
 ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
