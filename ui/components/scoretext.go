@@ -5,9 +5,10 @@ https://github.com/dylantientcheu/nbacli/blob/master/ui/gameboard/scoretext/scor
 package components
 
 import (
-	"gomlb/ui/constants"
 	"os"
 	"strings"
+
+	"github.com/axbolduc/gomlb/ui/constants"
 
 	"github.com/charmbracelet/lipgloss"
 	"golang.org/x/term"

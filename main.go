@@ -1,7 +1,7 @@
 package main
 
 import (
-	"gomlb/cmd"
+	"github.com/axbolduc/gomlb/cmd"
 )
 
 func main() {

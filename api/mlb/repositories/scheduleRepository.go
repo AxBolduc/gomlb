@@ -2,8 +2,9 @@ package repositories
 
 import (
 	"encoding/json"
-	"gomlb/api/mlb"
 	"time"
+
+	"github.com/axbolduc/gomlb/api/mlb"
 )
 
 var instance *ScheduleRepository

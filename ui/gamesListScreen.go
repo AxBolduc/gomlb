@@ -2,11 +2,12 @@ package ui
 
 import (
 	"fmt"
-	"gomlb/api/mlb"
-	"gomlb/api/mlb/repositories"
-	"gomlb/ui/constants"
 	"os"
 	"time"
+
+	"github.com/axbolduc/gomlb/api/mlb"
+	"github.com/axbolduc/gomlb/api/mlb/repositories"
+	"github.com/axbolduc/gomlb/ui/constants"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"

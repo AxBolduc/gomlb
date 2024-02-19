@@ -1,7 +1,7 @@
 package components
 
 import (
-	"gomlb/api/mlb"
+	"github.com/axbolduc/gomlb/api/mlb"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/evertras/bubble-table/table"

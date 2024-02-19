@@ -3,7 +3,8 @@ package repositories
 import (
 	"encoding/json"
 	"fmt"
-	"gomlb/api/mlb"
+
+	"github.com/axbolduc/gomlb/api/mlb"
 )
 
 type BoxscoreRepository struct {

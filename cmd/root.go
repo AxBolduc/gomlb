@@ -1,9 +1,10 @@
 package cmd
 
 import (
-	"gomlb/ui"
 	"os"
 	"time"
+
+	"github.com/axbolduc/gomlb/ui"
 
 	"github.com/spf13/cobra"
 )

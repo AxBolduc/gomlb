@@ -1,4 +1,4 @@
-module gomlb
+module github.com/axbolduc/gomlb
 
 go 1.22.0
 

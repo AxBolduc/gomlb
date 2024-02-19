@@ -2,7 +2,8 @@ package components
 
 import (
 	"fmt"
-	"gomlb/api/mlb"
+
+	"github.com/axbolduc/gomlb/api/mlb"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/evertras/bubble-table/table"
