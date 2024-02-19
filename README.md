@@ -102,7 +102,7 @@ gomlb -d YYYY-MM-DD
 ## Roadmap
 
 - [x] List of games for a given day
-- [-] Game View
+- [ ] Game View
   - [x] Score Display
   - [x] Line Score
   - [x] Batters Box Score
