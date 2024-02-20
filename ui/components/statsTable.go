@@ -43,7 +43,7 @@ func getPlayerNameMaxLen(players []mlb.BoxscorePlayer) int {
 	return playerNameMaxLen
 }
 
-func BuildPitcherStatsTable(players []mlb.BoxscorePlayer) table.Model {
+func BuildPitcherStatsTable(players []mlb.BoxscorePlayer, initialFocus bool) table.Model {
 	playerNameMaxLen := getPlayerNameMaxLen(players)
 
 	tableColumns := []table.Column{
@@ -65,7 +65,7 @@ func BuildPitcherStatsTable(players []mlb.BoxscorePlayer) table.Model {
 		lineup = append(lineup, boxscorePlayerToPitcherTableRow(player))
 	}
 
-	return table.New(tableColumns).WithRows(lineup).Focused(false).WithBaseStyle(lipgloss.NewStyle().AlignHorizontal(lipgloss.Left))
+	return table.New(tableColumns).WithRows(lineup).Focused(initialFocus).WithBaseStyle(lipgloss.NewStyle().AlignHorizontal(lipgloss.Left))
 
 }
 

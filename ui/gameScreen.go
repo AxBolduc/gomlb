@@ -16,17 +16,18 @@ import (
 )
 
 type GameScreenModel struct {
-	linescoreTable            table.Model
-	awayBattersTable          table.Model
-	awayPitchersTable         table.Model
-	homeBattersTable          table.Model
-	homePitchersTable         table.Model
-	isAwayBattersTableFocused bool
-	game                      mlb.Game
-	boxscore                  mlb.Boxscore
-	help                      help.Model
-	width                     int
-	previousModel             Model
+	linescoreTable        table.Model
+	awayBattersTable      table.Model
+	awayPitchersTable     table.Model
+	homeBattersTable      table.Model
+	homePitchersTable     table.Model
+	isAwayTableFocused    bool
+	isBattersTableFocused bool
+	game                  mlb.Game
+	boxscore              mlb.Boxscore
+	help                  help.Model
+	width                 int
+	previousModel         Model
 }
 
 var gameScreenKM = GameScreenKM{
@@ -39,7 +40,7 @@ var gameScreenKM = GameScreenKM{
 		key.WithHelp("esc", "Back"),
 	),
 	Quit: key.NewBinding(
-		key.WithKeys("ctrl+c", "q", "esc"),
+		key.WithKeys("ctrl+c", "q"),
 		key.WithHelp("ctrl+c/q", "quit"),
 	),
 	Left: key.NewBinding(
@@ -63,7 +64,7 @@ var gameScreenKM = GameScreenKM{
 		key.WithHelp("shift+up/K", "Up a Table"),
 	),
 	DownTable: key.NewBinding(
-		key.WithKeys("K", "shift+down"),
+		key.WithKeys("J", "shift+down"),
 		key.WithHelp("shift+down/J", "Down a Table"),
 	),
 }
@@ -99,25 +100,61 @@ func (m GameScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, gameScreenKM.Back):
 			return m.previousModel, tea.Batch()
 		case key.Matches(msg, gameScreenKM.Left):
-			m = m.swapFocusedTable()
+			m = m.swapFocusedTableLeftRight()
 		case key.Matches(msg, gameScreenKM.Right):
-			m = m.swapFocusedTable()
+			m = m.swapFocusedTableLeftRight()
+		case key.Matches(msg, gameScreenKM.UpTable):
+			m = m.swapFocusedTableUpDown()
+		case key.Matches(msg, gameScreenKM.DownTable):
+			m = m.swapFocusedTableUpDown()
 		}
 	}
 
-	m.awayBattersTable, cmd = m.awayBattersTable.Update(msg)
-	cmds = append(cmds, cmd)
-
-	m.homeBattersTable, cmd = m.homeBattersTable.Update(msg)
+	m, cmd = m.updateFocusedTable(msg)
 	cmds = append(cmds, cmd)
 
 	return m, tea.Batch(cmds...)
 }
 
+func (m GameScreenModel) updateFocusedTable(msg tea.Msg) (GameScreenModel, tea.Cmd) {
+	var cmd tea.Cmd
+	if m.isAwayTableFocused && m.isBattersTableFocused {
+		m.awayBattersTable, cmd = m.awayBattersTable.Update(msg)
+	}
+
+	if !m.isAwayTableFocused && m.isBattersTableFocused {
+		m.homeBattersTable, cmd = m.homeBattersTable.Update(msg)
+	}
+
+	if m.isAwayTableFocused && !m.isBattersTableFocused {
+		m.awayPitchersTable, cmd = m.awayPitchersTable.Update(msg)
+	}
+
+	if !m.isAwayTableFocused && !m.isBattersTableFocused {
+		m.homePitchersTable, cmd = m.homePitchersTable.Update(msg)
+	}
+
+	return m, cmd
+}
+
+func (m GameScreenModel) swapFocusedTableLeftRight() GameScreenModel {
+	m.isAwayTableFocused = !m.isAwayTableFocused
+
+	return m.swapFocusedTable()
+}
+
+func (m GameScreenModel) swapFocusedTableUpDown() GameScreenModel {
+	m.isBattersTableFocused = !m.isBattersTableFocused
+
+	return m.swapFocusedTable()
+}
+
 func (m GameScreenModel) swapFocusedTable() GameScreenModel {
-	m.isAwayBattersTableFocused = !m.isAwayBattersTableFocused
-	m.awayBattersTable = m.awayBattersTable.Focused(m.isAwayBattersTableFocused)
-	m.homeBattersTable = m.homeBattersTable.Focused(!m.isAwayBattersTableFocused)
+	m.awayBattersTable = m.awayBattersTable.Focused(m.isBattersTableFocused && m.isAwayTableFocused)
+	m.homeBattersTable = m.homeBattersTable.Focused(m.isBattersTableFocused && !m.isAwayTableFocused)
+
+	m.awayPitchersTable = m.awayPitchersTable.Focused(!m.isBattersTableFocused && m.isAwayTableFocused)
+	m.homePitchersTable = m.homePitchersTable.Focused(!m.isBattersTableFocused && !m.isAwayTableFocused)
 
 	return m
 }
@@ -147,31 +184,35 @@ func InitGameScreenModel(game mlb.Game, previousModel Model) *GameScreenModel {
 		panic(err)
 	}
 
+	initialAwayTableFocused := true
+	initialBatterTableFocused := true
+
 	awayBatters := positionListToPlayerList(boxscore.Teams.Away.BattingOrder, boxscore.Teams.Away.Players)
 	awayPitchers := positionListToPlayerList(boxscore.Teams.Away.Pitchers, boxscore.Teams.Away.Players)
 
 	homeBatters := positionListToPlayerList(boxscore.Teams.Home.BattingOrder, boxscore.Teams.Home.Players)
 	homePitchers := positionListToPlayerList(boxscore.Teams.Home.Pitchers, boxscore.Teams.Home.Players)
 
-	awayBattersTable := components.BuildBatterStatsTable(awayBatters, true)
-	awayPitchersTable := components.BuildPitcherStatsTable(awayPitchers)
+	awayBattersTable := components.BuildBatterStatsTable(awayBatters, initialAwayTableFocused && initialBatterTableFocused)
+	awayPitchersTable := components.BuildPitcherStatsTable(awayPitchers, initialAwayTableFocused && !initialBatterTableFocused)
 
-	homePlayerTable := components.BuildBatterStatsTable(homeBatters, false)
-	homePitchersTable := components.BuildPitcherStatsTable(homePitchers)
+	homePlayerTable := components.BuildBatterStatsTable(homeBatters, !initialAwayTableFocused && initialBatterTableFocused)
+	homePitchersTable := components.BuildPitcherStatsTable(homePitchers, initialAwayTableFocused && !initialBatterTableFocused)
 
 	linescoreTable := components.BuildLinescoreTable(game.Teams.Away.Team.Name, game.Teams.Home.Team.Name, game.Linescore)
 
 	gameScreenModel := GameScreenModel{
-		game:                      game,
-		previousModel:             previousModel,
-		awayBattersTable:          awayBattersTable,
-		awayPitchersTable:         awayPitchersTable,
-		homeBattersTable:          homePlayerTable,
-		homePitchersTable:         homePitchersTable,
-		linescoreTable:            linescoreTable,
-		isAwayBattersTableFocused: true,
-		boxscore:                  *boxscore,
-		help:                      help.New(),
+		game:                  game,
+		previousModel:         previousModel,
+		awayBattersTable:      awayBattersTable,
+		awayPitchersTable:     awayPitchersTable,
+		homeBattersTable:      homePlayerTable,
+		homePitchersTable:     homePitchersTable,
+		linescoreTable:        linescoreTable,
+		isAwayTableFocused:    initialAwayTableFocused,
+		isBattersTableFocused: initialBatterTableFocused,
+		boxscore:              *boxscore,
+		help:                  help.New(),
 	}
 
 	return &gameScreenModel
