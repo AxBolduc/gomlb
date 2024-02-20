@@ -19,35 +19,3 @@ type keymap struct {
 var DocStyle = lipgloss.NewStyle().Margin(1, 2)
 
 var WindowSize tea.WindowSizeMsg
-
-// Keymap reusable key mappings shared across models
-var Keymap = keymap{
-	Enter: key.NewBinding(
-		key.WithKeys("enter"),
-		key.WithHelp("↲/enter", "select"),
-	),
-	Yesterday: key.NewBinding(
-		key.WithKeys("<"),
-		key.WithHelp("<", "previous day"),
-	),
-	Tomorrow: key.NewBinding(
-		key.WithKeys(">"),
-		key.WithHelp(">", "next day"),
-	),
-	Back: key.NewBinding(
-		key.WithKeys("esc"),
-		key.WithHelp("esc", "back"),
-	),
-	Quit: key.NewBinding(
-		key.WithKeys("ctrl+c", "q"),
-		key.WithHelp("ctrl+c/q", "quit"),
-	),
-	Left: key.NewBinding(
-		key.WithKeys("left", "h"),
-		key.WithHelp("left/h", "Left"),
-	),
-	Right: key.NewBinding(
-		key.WithKeys("right", "l"),
-		key.WithHelp("right/l", "Right"),
-	),
-}

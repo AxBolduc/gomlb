@@ -9,6 +9,7 @@ import (
 	"github.com/axbolduc/gomlb/api/mlb/repositories"
 	"github.com/axbolduc/gomlb/ui/constants"
 
+	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -18,6 +19,27 @@ import (
 type Model struct {
 	date     time.Time
 	gameList list.Model
+	help     help.Model
+	width    int
+}
+
+var gamesListKM = GamesListKM{
+	Enter: key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("↲/enter", "select"),
+	),
+	Previous: key.NewBinding(
+		key.WithKeys("<"),
+		key.WithHelp("<", "previous day"),
+	),
+	Next: key.NewBinding(
+		key.WithKeys(">"),
+		key.WithHelp(">", "next day"),
+	),
+	Quit: key.NewBinding(
+		key.WithKeys("ctrl+c", "q", "esc"),
+		key.WithHelp("ctrl+c/q", "quit"),
+	),
 }
 
 func (m Model) Init() tea.Cmd {
@@ -33,17 +55,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		constants.WindowSize = msg
 		h, v := constants.DocStyle.GetFrameSize()
 		m.gameList.SetSize(msg.Width-h, msg.Height-v)
+		m.width = msg.Width - h
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, constants.Keymap.Quit):
+		case key.Matches(msg, gamesListKM.Quit):
 			return m, tea.Quit
-		case key.Matches(msg, constants.Keymap.Tomorrow):
+		case key.Matches(msg, gamesListKM.Next):
 			// Update the model for tomorrow
 			m = m.UpdateWithDate(m.date.AddDate(0, 0, 1))
-		case key.Matches(msg, constants.Keymap.Yesterday):
+		case key.Matches(msg, gamesListKM.Previous):
 			//Update the model for yesterday
 			m = m.UpdateWithDate(m.date.AddDate(0, 0, -1))
-		case key.Matches(msg, constants.Keymap.Enter):
+		case key.Matches(msg, gamesListKM.Enter):
 			activeGame := m.gameList.SelectedItem().(mlb.Game)
 			gameScreenModel := InitGameScreenModel(activeGame, m)
 			return gameScreenModel.Update(constants.WindowSize)
@@ -94,6 +117,14 @@ func InitModel(date time.Time) tea.Model {
 
 	// Custom styling
 	customDelegate := list.NewDefaultDelegate()
+	customDelegate.ShortHelpFunc = func() []key.Binding {
+		return gamesListKM.ShortHelp()
+	}
+
+	customDelegate.FullHelpFunc = func() [][]key.Binding {
+		return gamesListKM.FullHelp()
+	}
+
 	customDelegate.Styles.SelectedTitle = lipgloss.NewStyle().
 		Border(lipgloss.NormalBorder(), false, false, false, true).
 		BorderForeground(lipgloss.AdaptiveColor{Light: "#5875b4", Dark: "#5875b4"}).
@@ -102,7 +133,7 @@ func InitModel(date time.Time) tea.Model {
 
 	customDelegate.Styles.SelectedDesc = customDelegate.Styles.SelectedTitle.Copy()
 
-	m := Model{gameList: list.New(items, customDelegate, 50, 25), date: date}
+	m := Model{gameList: list.New(items, customDelegate, 50, 25), date: date, help: help.New()}
 	m.gameList.Title = fmt.Sprintf("Games on %s", date.Format(time.DateOnly))
 
 	return m
