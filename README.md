@@ -112,6 +112,9 @@ gomlb -d YYYY-MM-DD
   - [ ] Bio Information
   - [ ] Season Stats
   - [ ] Career Stats
+- [ ] Better Schedule View
+    - [ ] View scheduled/upcoming games
+    - [ ] Calendar view?
 
 See the [open issues](https://github.com/AxBolduc/gomlb/issues) for a full list of proposed features (and known issues).
 
