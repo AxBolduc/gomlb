@@ -71,6 +71,7 @@ func BuildPitcherStatsTable(players []mlb.BoxscorePlayer, initialFocus bool) tab
 
 func boxscorePlayerToBatterTableRow(player mlb.BoxscorePlayer) table.Row {
 	row := table.NewRow(table.RowData{
+		"id":         player.Person.Id,
 		"playerName": player.Person.FullName,
 		"pos":        player.Position.Abbreviation,
 		"ab":         player.Stats.Batting.AtBats,

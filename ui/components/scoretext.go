@@ -122,7 +122,7 @@ func RenderScoreText(scoreAway int, scoreHome int, awayTeamName string, homeTeam
 		gameBoard := lipgloss.Place(width, 17,
 			lipgloss.Center, lipgloss.Center,
 			dialogBoxStyle.Render(ui),
-			lipgloss.WithWhitespaceChars("░"),
+			lipgloss.WithWhitespaceChars(" "),
 			lipgloss.WithWhitespaceForeground(subtle),
 		)
 

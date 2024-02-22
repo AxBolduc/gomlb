@@ -16,6 +16,10 @@ type keymap struct {
 	Right     key.Binding
 }
 
-var DocStyle = lipgloss.NewStyle().Margin(1, 2)
+var VPadding = 1
+var HPadding = 2
+
+var PrimaryColor = lipgloss.AdaptiveColor{Light: "#5875b4", Dark: "#5875b4"}
+var DocStyle lipgloss.Style
 
 var WindowSize tea.WindowSizeMsg

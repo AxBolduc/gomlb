@@ -17,10 +17,10 @@ import (
 )
 
 type Model struct {
-	date     time.Time
-	gameList list.Model
-	help     help.Model
-	width    int
+	date          time.Time
+	gameList      list.Model
+	help          help.Model
+	width, height int
 }
 
 var gamesListKM = GamesListKM{
@@ -47,15 +47,17 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		constants.WindowSize = msg
-		h, v := constants.DocStyle.GetFrameSize()
-		m.gameList.SetSize(msg.Width-h, msg.Height-v)
-		m.width = msg.Width - h
+		constants.DocStyle = lipgloss.NewStyle().Width(msg.Width).Height(msg.Height).Padding(constants.VPadding, constants.HPadding)
+
+		m.width = msg.Width - constants.DocStyle.GetHorizontalFrameSize()
+		m.height = msg.Height - constants.DocStyle.GetVerticalFrameSize()
+
+		m.gameList.SetSize(m.width, m.height)
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, gamesListKM.Quit):
@@ -74,10 +76,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	m.gameList, cmd = m.gameList.Update(msg)
+
 	return m, cmd
 }
 
 func (m Model) View() string {
+	if m.width == 0 || m.height == 0 {
+		return "Initializing..."
+	}
+
 	return constants.DocStyle.Render(m.gameList.View())
 }
 
@@ -87,15 +94,16 @@ func (m Model) UpdateWithDate(date time.Time) Model {
 		panic(err)
 	}
 
-	if len(schedule.Dates) == 0 {
-		return m
-	}
-
 	m.date = date
 
-	newListItems := gamesToItems(schedule.Dates[0].Games)
-	m.gameList.SetItems(newListItems)
-	m.gameList.Title = fmt.Sprintf("Games for %s", date.Format(time.DateOnly))
+	if len(schedule.Dates) == 0 {
+		m.gameList.SetItems([]list.Item{})
+		m.gameList.Title = fmt.Sprintf("No games on %s", date.Format(time.DateOnly))
+	} else {
+		newListItems := gamesToItems(schedule.Dates[0].Games)
+		m.gameList.SetItems(newListItems)
+		m.gameList.Title = fmt.Sprintf("Games for %s", date.Format(time.DateOnly))
+	}
 
 	return m
 }
@@ -127,13 +135,13 @@ func InitModel(date time.Time) tea.Model {
 
 	customDelegate.Styles.SelectedTitle = lipgloss.NewStyle().
 		Border(lipgloss.NormalBorder(), false, false, false, true).
-		BorderForeground(lipgloss.AdaptiveColor{Light: "#5875b4", Dark: "#5875b4"}).
-		Foreground(lipgloss.AdaptiveColor{Light: "#5875b4", Dark: "#5875b4"}).
+		BorderForeground(constants.PrimaryColor).
+		Foreground(constants.PrimaryColor).
 		Padding(0, 0, 0, 1)
 
 	customDelegate.Styles.SelectedDesc = customDelegate.Styles.SelectedTitle.Copy()
 
-	m := Model{gameList: list.New(items, customDelegate, 50, 25), date: date, help: help.New()}
+	m := Model{gameList: list.New(items, customDelegate, 0, 0), date: date, help: help.New()}
 	m.gameList.Title = fmt.Sprintf("Games on %s", date.Format(time.DateOnly))
 
 	return m

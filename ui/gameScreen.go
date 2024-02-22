@@ -7,6 +7,7 @@ import (
 	"github.com/axbolduc/gomlb/api/mlb/repositories"
 	"github.com/axbolduc/gomlb/ui/components"
 	"github.com/axbolduc/gomlb/ui/constants"
+	"github.com/axbolduc/gomlb/ui/popup"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
@@ -26,8 +27,9 @@ type GameScreenModel struct {
 	game                  mlb.Game
 	boxscore              mlb.Boxscore
 	help                  help.Model
-	width                 int
 	previousModel         Model
+	popup                 tea.Model
+	width, height         int
 }
 
 var gameScreenKM = GameScreenKM{
@@ -80,9 +82,10 @@ func (m GameScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		h, _ := constants.DocStyle.GetFrameSize()
+		constants.DocStyle = lipgloss.NewStyle().Width(msg.Width).Height(msg.Height).Padding(constants.VPadding, constants.HPadding)
 
-		m.width = msg.Width - h
+		m.width = msg.Width - constants.DocStyle.GetHorizontalFrameSize()
+		m.height = msg.Height - constants.DocStyle.GetVerticalFrameSize()
 
 		splitColumnTargetWidth := m.width / 2
 
@@ -98,7 +101,12 @@ func (m GameScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, gameScreenKM.Quit):
 			return m, tea.Quit
 		case key.Matches(msg, gameScreenKM.Back):
-			return m.previousModel, tea.Batch()
+			if m.popup == nil {
+				return m.previousModel, tea.Batch()
+			} else {
+				gameScreenKM.SetEnabled(true)
+				m.popup = nil
+			}
 		case key.Matches(msg, gameScreenKM.Left):
 			m = m.swapFocusedTableLeftRight()
 		case key.Matches(msg, gameScreenKM.Right):
@@ -107,10 +115,18 @@ func (m GameScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m = m.swapFocusedTableUpDown()
 		case key.Matches(msg, gameScreenKM.DownTable):
 			m = m.swapFocusedTableUpDown()
+		case key.Matches(msg, gameScreenKM.Enter):
+			batterId := m.awayBattersTable.HighlightedRow().Data["id"].(int)
+			m.popup = popup.NewBatterStatsPopup(m.View(), batterId, m.width-2*constants.VPadding, m.height-2*constants.VPadding)
+			gameScreenKM.SetEnabled(false)
+			return m, m.popup.Init()
 		}
 	}
 
-	m, cmd = m.updateFocusedTable(msg)
+	if m.popup == nil {
+		m, cmd = m.updateFocusedTable(msg)
+	}
+
 	cmds = append(cmds, cmd)
 
 	return m, tea.Batch(cmds...)
@@ -160,6 +176,11 @@ func (m GameScreenModel) swapFocusedTable() GameScreenModel {
 }
 
 func (m GameScreenModel) View() string {
+
+	if m.popup != nil {
+		return m.popup.View()
+	}
+
 	scoreBox := components.RenderScoreText(m.game.Linescore.Teams.Away.Runs, m.game.Linescore.Teams.Home.Runs, m.game.Teams.Away.Team.Name, m.game.Teams.Home.Team.Name)
 
 	battersTables := lipgloss.JoinHorizontal(lipgloss.Top, m.awayBattersTable.View(), m.homeBattersTable.View())
