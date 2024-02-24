@@ -28,7 +28,7 @@ type GameScreenModel struct {
 	boxscore              mlb.Boxscore
 	help                  help.Model
 	previousModel         Model
-	popup                 tea.Model
+	popup                 popup.IPopup
 	width, height         int
 }
 
@@ -47,11 +47,19 @@ var gameScreenKM = GameScreenKM{
 	),
 	Left: key.NewBinding(
 		key.WithKeys("left", "h"),
-		key.WithHelp("left/h", "Left"),
+		key.WithHelp("left/h", "Table Previous Page"),
 	),
 	Right: key.NewBinding(
 		key.WithKeys("right", "l"),
-		key.WithHelp("right/l", "Right"),
+		key.WithHelp("right/l", "Table Next Page"),
+	),
+	LeftTable: key.NewBinding(
+		key.WithKeys("shift+left", "H"),
+		key.WithHelp("shift+left/H", "Left Table"),
+	),
+	RightTable: key.NewBinding(
+		key.WithKeys("shift+right", "L"),
+		key.WithHelp("shift+right/L", "Right Table"),
 	),
 	Up: key.NewBinding(
 		key.WithKeys("up", "k"),
@@ -96,7 +104,16 @@ func (m GameScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		m.linescoreTable = m.linescoreTable.WithTargetWidth(m.width)
 
+		if m.popup != nil {
+			// Send resize message to the popup
+			m.popup = m.popup.Resize(msg, m.renderMainScreen())
+		}
+
 	case tea.KeyMsg:
+		if m.popup == nil {
+			m, cmd = m.updateFocusedTable(msg)
+		}
+
 		switch {
 		case key.Matches(msg, gameScreenKM.Quit):
 			return m, tea.Quit
@@ -107,24 +124,22 @@ func (m GameScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				gameScreenKM.SetEnabled(true)
 				m.popup = nil
 			}
-		case key.Matches(msg, gameScreenKM.Left):
+		case key.Matches(msg, gameScreenKM.LeftTable):
 			m = m.swapFocusedTableLeftRight()
-		case key.Matches(msg, gameScreenKM.Right):
+		case key.Matches(msg, gameScreenKM.RightTable):
 			m = m.swapFocusedTableLeftRight()
 		case key.Matches(msg, gameScreenKM.UpTable):
 			m = m.swapFocusedTableUpDown()
 		case key.Matches(msg, gameScreenKM.DownTable):
 			m = m.swapFocusedTableUpDown()
 		case key.Matches(msg, gameScreenKM.Enter):
-			batterId := m.awayBattersTable.HighlightedRow().Data["id"].(int)
-			m.popup = popup.NewBatterStatsPopup(m.View(), batterId, m.width-2*constants.VPadding, m.height-2*constants.VPadding)
-			gameScreenKM.SetEnabled(false)
-			return m, m.popup.Init()
+			batterId := m.awayPitchersTable.HighlightedRow().Data["id"].(int)
+			m.popup = popup.NewBatterStatsPopup(m.View(), batterId, m.width-2*constants.PopupHPadding, m.height-2*constants.PopupVPadding)
+			if m.popup != nil {
+				gameScreenKM.SetEnabled(false)
+				return m, m.popup.Init()
+			}
 		}
-	}
-
-	if m.popup == nil {
-		m, cmd = m.updateFocusedTable(msg)
 	}
 
 	cmds = append(cmds, cmd)
@@ -181,6 +196,10 @@ func (m GameScreenModel) View() string {
 		return m.popup.View()
 	}
 
+	return m.renderMainScreen()
+}
+
+func (m GameScreenModel) renderMainScreen() string {
 	scoreBox := components.RenderScoreText(m.game.Linescore.Teams.Away.Runs, m.game.Linescore.Teams.Home.Runs, m.game.Teams.Away.Team.Name, m.game.Teams.Home.Team.Name)
 
 	battersTables := lipgloss.JoinHorizontal(lipgloss.Top, m.awayBattersTable.View(), m.homeBattersTable.View())
@@ -215,10 +234,10 @@ func InitGameScreenModel(game mlb.Game, previousModel Model) *GameScreenModel {
 	homePitchers := positionListToPlayerList(boxscore.Teams.Home.Pitchers, boxscore.Teams.Home.Players)
 
 	awayBattersTable := components.BuildBatterStatsTable(awayBatters, initialAwayTableFocused && initialBatterTableFocused)
-	awayPitchersTable := components.BuildPitcherStatsTable(awayPitchers, initialAwayTableFocused && !initialBatterTableFocused)
+	awayPitchersTable := components.BuildPitcherStatsTable(awayPitchers, initialAwayTableFocused && !initialBatterTableFocused).WithPageSize(5)
 
 	homePlayerTable := components.BuildBatterStatsTable(homeBatters, !initialAwayTableFocused && initialBatterTableFocused)
-	homePitchersTable := components.BuildPitcherStatsTable(homePitchers, initialAwayTableFocused && !initialBatterTableFocused)
+	homePitchersTable := components.BuildPitcherStatsTable(homePitchers, initialAwayTableFocused && !initialBatterTableFocused).WithPageSize(5)
 
 	linescoreTable := components.BuildLinescoreTable(game.Teams.Away.Team.Name, game.Teams.Home.Team.Name, game.Linescore)
 

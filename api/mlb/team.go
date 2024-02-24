@@ -13,3 +13,8 @@ type TeamRecord struct {
 	Losses int
 	Pct    string
 }
+
+type Team struct {
+	Id   int
+	Name string
+}

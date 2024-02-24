@@ -9,6 +9,7 @@ import (
 
 // Overlay allows you to overlay text on top of a background and achieve a popup.
 type Overlay struct {
+	bgRaw     string
 	textAbove string
 	textBelow string
 	rowPrefix []string
@@ -18,27 +19,27 @@ type Overlay struct {
 }
 
 // NewOverlay creates a new overlay and computes the necessary indices.
-func NewOverlay(bgRaw string, width, height int) Overlay {
+func NewOverlay(bgRaw string, popupWidth, popupHeight int) Overlay {
 	bg := strings.Split(bgRaw, "\n")
 	bgWidth := ansi.PrintableRuneWidth(bg[0])
 	bgHeight := len(bg)
 
-	if height > bgHeight {
-		height = bgHeight
+	if popupHeight > bgHeight {
+		popupHeight = bgHeight
 	}
-	if width > bgWidth {
-		width = bgWidth
+	if popupWidth > bgWidth {
+		popupWidth = bgWidth
 	}
 
-	startRow := (bgHeight - height) / 2
-	startCol := (bgWidth - width) / 2
+	startRow := (bgHeight - popupHeight) / 2
+	startCol := (bgWidth - popupWidth) / 2
 
-	rowPrefix := make([]string, height)
-	rowSuffix := make([]string, height)
+	rowPrefix := make([]string, popupHeight)
+	rowSuffix := make([]string, popupHeight)
 
-	for i, text := range bg[startRow : startRow+height] {
+	for i, text := range bg[startRow : startRow+popupHeight] {
 		popupStart := findPrintIndex(text, startCol)
-		popupEnd := findPrintIndex(text, startCol+width)
+		popupEnd := findPrintIndex(text, startCol+popupWidth)
 
 		if popupStart != -1 {
 			rowPrefix[i] = text[:popupStart]
@@ -55,13 +56,14 @@ func NewOverlay(bgRaw string, width, height int) Overlay {
 	}
 
 	prefix := strings.Join(bg[:startRow], "\n")
-	suffix := strings.Join(bg[startRow+height:], "\n")
+	suffix := strings.Join(bg[startRow+popupHeight:], "\n")
 
 	return Overlay{
+		bgRaw:     bgRaw,
 		rowPrefix: rowPrefix,
 		rowSuffix: rowSuffix,
-		width:     width,
-		height:    height,
+		width:     popupWidth,
+		height:    popupHeight,
 		textAbove: prefix,
 		textBelow: suffix,
 	}

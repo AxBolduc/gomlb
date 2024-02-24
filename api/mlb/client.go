@@ -20,11 +20,17 @@ type Client struct {
 	HTTPClient *http.Client
 }
 
+var mlbClientInstance *Client
+
 func NewDefaultClient() *Client {
-	return &Client{
-		BaseUrl:    DefaultBaseURL,
-		HTTPClient: http.DefaultClient,
+	if mlbClientInstance == nil {
+		mlbClientInstance = &Client{
+			BaseUrl:    DefaultBaseURL,
+			HTTPClient: http.DefaultClient,
+		}
 	}
+
+	return mlbClientInstance
 }
 
 func (c *Client) Do(req *http.Request) ([]byte, error) {

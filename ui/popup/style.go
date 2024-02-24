@@ -14,6 +14,7 @@ type popupStyle struct {
 }
 
 // newPopupStyle creates a new popup style.
+// (-2) on width and height is for border characters
 func newPopupStyle(width, height int) popupStyle {
 	general := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#FFFFFF")).
@@ -24,7 +25,7 @@ func newPopupStyle(width, height int) popupStyle {
 
 	heading := lipgloss.NewStyle().
 		Margin(1, 0, 1, 0).
-		Width(width - 2).
+		Width(width).
 		Underline(true).
 		Align(lipgloss.Center)
 

@@ -2,6 +2,7 @@
 package popup
 
 import (
+	"github.com/axbolduc/gomlb/ui/constants"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -32,10 +33,11 @@ func (p Popup) Init() tea.Cmd {
 }
 
 // Update updates the popup.
-func (p Popup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (p Popup) Update(msg tea.Msg) (Popup, tea.Cmd) {
 	var cmds []tea.Cmd
 
-	if msg, ok := msg.(tea.KeyMsg); ok {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
 		switch msg.String() {
 		case "q":
 			return p, tea.Quit
@@ -43,6 +45,18 @@ func (p Popup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return p, tea.Batch(cmds...)
+}
+
+func (p Popup) Resize(msg tea.WindowSizeMsg, bgRaw string) Popup {
+	newWidth := msg.Width - constants.DocStyle.GetHorizontalFrameSize() - p.style.general.GetVerticalBorderSize() - 2*constants.PopupHPadding
+	newHeight := msg.Height - constants.DocStyle.GetVerticalFrameSize() - p.style.general.GetHorizontalBorderSize() - 2*constants.PopupVPadding
+
+	p.overlay = NewOverlay(bgRaw, newWidth, newHeight)
+
+	p.style.general = p.style.general.Width(newWidth).Height(newHeight)
+	p.style.heading = p.style.heading.Width(newWidth).Height(newHeight)
+
+	return p
 }
 
 // View renders the popup.
@@ -53,6 +67,7 @@ func (p Popup) View() string {
 	return p.overlay.WrapView(p.style.general.Render(popup))
 }
 
-func (p *Popup) SetFg(fg string) {
+func (p Popup) SetFg(fg string) Popup {
 	p.fg = fg
+	return p
 }

@@ -89,6 +89,7 @@ func boxscorePlayerToBatterTableRow(player mlb.BoxscorePlayer) table.Row {
 
 func boxscorePlayerToPitcherTableRow(player mlb.BoxscorePlayer) table.Row {
 	row := table.NewRow(table.RowData{
+		"id":         player.Person.Id,
 		"playerName": player.Person.FullName,
 		"pos":        player.Position.Abbreviation,
 		"ip":         player.Stats.Pitching.InningsPitched,

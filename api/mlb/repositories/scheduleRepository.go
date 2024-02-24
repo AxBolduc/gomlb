@@ -7,20 +7,20 @@ import (
 	"github.com/axbolduc/gomlb/api/mlb"
 )
 
-var instance *ScheduleRepository
+var scheduleRepoInstance *ScheduleRepository
 
 type ScheduleRepository struct {
 	client *mlb.Client
 }
 
 func NewScheduleRepository() *ScheduleRepository {
-	if instance == nil {
-		instance = &ScheduleRepository{
+	if scheduleRepoInstance == nil {
+		scheduleRepoInstance = &ScheduleRepository{
 			client: mlb.NewDefaultClient(),
 		}
 	}
 
-	return instance
+	return scheduleRepoInstance
 }
 
 func (repo *ScheduleRepository) GetScheduleForDate(date time.Time) (*mlb.Schedule, error) {

@@ -19,6 +19,9 @@ type keymap struct {
 var VPadding = 1
 var HPadding = 2
 
+var PopupVPadding = 3
+var PopupHPadding = 6
+
 var PrimaryColor = lipgloss.AdaptiveColor{Light: "#5875b4", Dark: "#5875b4"}
 var DocStyle lipgloss.Style
 
