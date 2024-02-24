@@ -7,6 +7,13 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+type IPopup interface {
+	Init() tea.Cmd
+	Update(msg tea.Msg) (IPopup, tea.Cmd)
+	View() string
+	Resize(msg tea.WindowSizeMsg, bgRaw string) IPopup
+}
+
 // Popup is the feed popup where a user can create/edit a feed.
 type Popup struct {
 	title   string
@@ -54,7 +61,8 @@ func (p Popup) Resize(msg tea.WindowSizeMsg, bgRaw string) Popup {
 	p.overlay = NewOverlay(bgRaw, newWidth, newHeight)
 
 	p.style.general = p.style.general.Width(newWidth).Height(newHeight)
-	p.style.heading = p.style.heading.Width(newWidth).Height(newHeight)
+	p.style.heading = p.style.heading.Width(newWidth)
+	p.style.item = p.style.item.Width(newWidth).MaxHeight(p.style.general.GetHeight() - p.style.heading.GetHeight())
 
 	return p
 }
@@ -64,7 +72,12 @@ func (p Popup) View() string {
 	title := p.style.heading.Render(p.title)
 	fgRender := p.style.item.Render(p.fg)
 	popup := lipgloss.JoinVertical(lipgloss.Left, title, fgRender)
+
 	return p.overlay.WrapView(p.style.general.Render(popup))
+}
+
+func (p Popup) GetStyles() popupStyle {
+	return p.style
 }
 
 func (p Popup) SetFg(fg string) Popup {

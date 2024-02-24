@@ -13,6 +13,16 @@ type popupStyle struct {
 	item    lipgloss.Style
 }
 
+func (p popupStyle) GetGeneral() lipgloss.Style {
+	return p.general
+}
+func (p popupStyle) GetHeading() lipgloss.Style {
+	return p.heading
+}
+func (p popupStyle) GetItem() lipgloss.Style {
+	return p.item
+}
+
 // newPopupStyle creates a new popup style.
 // (-2) on width and height is for border characters
 func newPopupStyle(width, height int) popupStyle {
@@ -30,8 +40,6 @@ func newPopupStyle(width, height int) popupStyle {
 		Align(lipgloss.Center)
 
 	item := lipgloss.NewStyle().
-		Margin(0, 4).
-		PaddingLeft(1).
 		MaxHeight(general.GetHeight() - heading.GetHeight())
 
 	return popupStyle{

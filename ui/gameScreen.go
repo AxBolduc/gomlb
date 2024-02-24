@@ -8,6 +8,7 @@ import (
 	"github.com/axbolduc/gomlb/ui/components"
 	"github.com/axbolduc/gomlb/ui/constants"
 	"github.com/axbolduc/gomlb/ui/popup"
+	"github.com/axbolduc/gomlb/ui/popup/batterStatsPopup"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
@@ -133,8 +134,8 @@ func (m GameScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, gameScreenKM.DownTable):
 			m = m.swapFocusedTableUpDown()
 		case key.Matches(msg, gameScreenKM.Enter):
-			batterId := m.awayPitchersTable.HighlightedRow().Data["id"].(int)
-			m.popup = popup.NewBatterStatsPopup(m.View(), batterId, m.width-2*constants.PopupHPadding, m.height-2*constants.PopupVPadding)
+			batterId := m.awayBattersTable.HighlightedRow().Data["id"].(int)
+			m.popup = batterStatsPopup.New(m.View(), batterId, m.width-2*constants.PopupHPadding, m.height-2*constants.PopupVPadding)
 			if m.popup != nil {
 				gameScreenKM.SetEnabled(false)
 				return m, m.popup.Init()
