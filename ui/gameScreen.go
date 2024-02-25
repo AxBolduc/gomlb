@@ -17,20 +17,37 @@ import (
 	"github.com/evertras/bubble-table/table"
 )
 
+var DIRECTIONS = map[string]string{
+	"LEFT":  "LEFT",
+	"RIGHT": "RIGHT",
+	"UP":    "UP",
+	"DOWN":  "DOWN",
+}
+
+var TABLE_TO_INDEX_MAP = map[string]int{
+	"awayBatters":  0,
+	"homeBatters":  1,
+	"awayPitchers": 2,
+	"homePitchers": 3,
+}
+
+var INDEX_TO_TABLE_MAP = map[int]string{
+	0: "awayBatters",
+	1: "homeBatters",
+	2: "awayPitchers",
+	3: "homePitchers",
+}
+
 type GameScreenModel struct {
-	linescoreTable        table.Model
-	awayBattersTable      table.Model
-	awayPitchersTable     table.Model
-	homeBattersTable      table.Model
-	homePitchersTable     table.Model
-	isAwayTableFocused    bool
-	isBattersTableFocused bool
-	game                  mlb.Game
-	boxscore              mlb.Boxscore
-	help                  help.Model
-	previousModel         Model
-	popup                 popup.IPopup
-	width, height         int
+	linescoreTable    table.Model
+	playerTables      []table.Model
+	focusedTableIndex int
+	game              mlb.Game
+	boxscore          mlb.Boxscore
+	help              help.Model
+	previousModel     Model
+	popup             popup.IPopup
+	width, height     int
 }
 
 var gameScreenKM = GameScreenKM{
@@ -98,10 +115,9 @@ func (m GameScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		splitColumnTargetWidth := m.width / 2
 
-		m.homeBattersTable = m.homeBattersTable.WithTargetWidth(splitColumnTargetWidth)
-		m.awayBattersTable = m.awayBattersTable.WithTargetWidth(splitColumnTargetWidth)
-		m.homePitchersTable = m.homePitchersTable.WithTargetWidth(splitColumnTargetWidth)
-		m.awayPitchersTable = m.awayPitchersTable.WithTargetWidth(splitColumnTargetWidth)
+		for i, table := range m.playerTables {
+			m.playerTables[i] = table.WithTargetWidth(splitColumnTargetWidth)
+		}
 
 		m.linescoreTable = m.linescoreTable.WithTargetWidth(m.width)
 
@@ -126,15 +142,15 @@ func (m GameScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.popup = nil
 			}
 		case key.Matches(msg, gameScreenKM.LeftTable):
-			m = m.swapFocusedTableLeftRight()
+			m = m.updateFocusedTableIndex(DIRECTIONS["LEFT"])
 		case key.Matches(msg, gameScreenKM.RightTable):
-			m = m.swapFocusedTableLeftRight()
+			m = m.updateFocusedTableIndex(DIRECTIONS["RIGHT"])
 		case key.Matches(msg, gameScreenKM.UpTable):
-			m = m.swapFocusedTableUpDown()
+			m = m.updateFocusedTableIndex(DIRECTIONS["UP"])
 		case key.Matches(msg, gameScreenKM.DownTable):
-			m = m.swapFocusedTableUpDown()
+			m = m.updateFocusedTableIndex(DIRECTIONS["DOWN"])
 		case key.Matches(msg, gameScreenKM.Enter):
-			batterId := m.awayBattersTable.HighlightedRow().Data["id"].(int)
+			batterId := m.playerTables[TABLE_TO_INDEX_MAP["awayBatters"]].HighlightedRow().Data["id"].(int)
 			m.popup = batterStatsPopup.New(m.View(), batterId, m.width-2*constants.PopupHPadding, m.height-2*constants.PopupVPadding)
 			if m.popup != nil {
 				gameScreenKM.SetEnabled(false)
@@ -150,43 +166,28 @@ func (m GameScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m GameScreenModel) updateFocusedTable(msg tea.Msg) (GameScreenModel, tea.Cmd) {
 	var cmd tea.Cmd
-	if m.isAwayTableFocused && m.isBattersTableFocused {
-		m.awayBattersTable, cmd = m.awayBattersTable.Update(msg)
-	}
-
-	if !m.isAwayTableFocused && m.isBattersTableFocused {
-		m.homeBattersTable, cmd = m.homeBattersTable.Update(msg)
-	}
-
-	if m.isAwayTableFocused && !m.isBattersTableFocused {
-		m.awayPitchersTable, cmd = m.awayPitchersTable.Update(msg)
-	}
-
-	if !m.isAwayTableFocused && !m.isBattersTableFocused {
-		m.homePitchersTable, cmd = m.homePitchersTable.Update(msg)
-	}
+	m.playerTables[m.focusedTableIndex], cmd = m.playerTables[m.focusedTableIndex].Update(msg)
 
 	return m, cmd
 }
 
-func (m GameScreenModel) swapFocusedTableLeftRight() GameScreenModel {
-	m.isAwayTableFocused = !m.isAwayTableFocused
+func (m GameScreenModel) updateFocusedTableIndex(direction string) GameScreenModel {
+	m.playerTables[m.focusedTableIndex] = m.playerTables[m.focusedTableIndex].Focused(false)
 
-	return m.swapFocusedTable()
-}
+	numTables := len(m.playerTables)
 
-func (m GameScreenModel) swapFocusedTableUpDown() GameScreenModel {
-	m.isBattersTableFocused = !m.isBattersTableFocused
+	switch direction {
+	case DIRECTIONS["LEFT"]:
+		m.focusedTableIndex = (m.focusedTableIndex - 1 + numTables) % numTables
+	case DIRECTIONS["RIGHT"]:
+		m.focusedTableIndex = (m.focusedTableIndex + 1) % numTables
+	case DIRECTIONS["UP"]:
+		m.focusedTableIndex = (m.focusedTableIndex - 2 + numTables) % numTables
+	case DIRECTIONS["DOWN"]:
+		m.focusedTableIndex = (m.focusedTableIndex + 2) % numTables
+	}
 
-	return m.swapFocusedTable()
-}
-
-func (m GameScreenModel) swapFocusedTable() GameScreenModel {
-	m.awayBattersTable = m.awayBattersTable.Focused(m.isBattersTableFocused && m.isAwayTableFocused)
-	m.homeBattersTable = m.homeBattersTable.Focused(m.isBattersTableFocused && !m.isAwayTableFocused)
-
-	m.awayPitchersTable = m.awayPitchersTable.Focused(!m.isBattersTableFocused && m.isAwayTableFocused)
-	m.homePitchersTable = m.homePitchersTable.Focused(!m.isBattersTableFocused && !m.isAwayTableFocused)
+	m.playerTables[m.focusedTableIndex] = m.playerTables[m.focusedTableIndex].Focused(true)
 
 	return m
 }
@@ -203,8 +204,8 @@ func (m GameScreenModel) View() string {
 func (m GameScreenModel) renderMainScreen() string {
 	scoreBox := components.RenderScoreText(m.game.Linescore.Teams.Away.Runs, m.game.Linescore.Teams.Home.Runs, m.game.Teams.Away.Team.Name, m.game.Teams.Home.Team.Name)
 
-	battersTables := lipgloss.JoinHorizontal(lipgloss.Top, m.awayBattersTable.View(), m.homeBattersTable.View())
-	pitchersTables := lipgloss.JoinHorizontal(lipgloss.Top, m.awayPitchersTable.View(), m.homePitchersTable.View())
+	battersTables := lipgloss.JoinHorizontal(lipgloss.Top, m.playerTables[TABLE_TO_INDEX_MAP["awayBatters"]].View(), m.playerTables[TABLE_TO_INDEX_MAP["homeBatters"]].View())
+	pitchersTables := lipgloss.JoinHorizontal(lipgloss.Top, m.playerTables[TABLE_TO_INDEX_MAP["awayPitchers"]].View(), m.playerTables[TABLE_TO_INDEX_MAP["homePitchers"]].View())
 
 	helpContainer := lipgloss.NewStyle().
 		SetString(m.help.View(gameScreenKM)).
@@ -237,23 +238,21 @@ func InitGameScreenModel(game mlb.Game, previousModel Model) *GameScreenModel {
 	awayBattersTable := components.BuildBatterStatsTable(awayBatters, initialAwayTableFocused && initialBatterTableFocused)
 	awayPitchersTable := components.BuildPitcherStatsTable(awayPitchers, initialAwayTableFocused && !initialBatterTableFocused).WithPageSize(5)
 
-	homePlayerTable := components.BuildBatterStatsTable(homeBatters, !initialAwayTableFocused && initialBatterTableFocused)
+	homeBattersTable := components.BuildBatterStatsTable(homeBatters, !initialAwayTableFocused && initialBatterTableFocused)
 	homePitchersTable := components.BuildPitcherStatsTable(homePitchers, initialAwayTableFocused && !initialBatterTableFocused).WithPageSize(5)
+
+	playerTables := []table.Model{awayBattersTable, homeBattersTable, awayPitchersTable, homePitchersTable}
 
 	linescoreTable := components.BuildLinescoreTable(game.Teams.Away.Team.Name, game.Teams.Home.Team.Name, game.Linescore)
 
 	gameScreenModel := GameScreenModel{
-		game:                  game,
-		previousModel:         previousModel,
-		awayBattersTable:      awayBattersTable,
-		awayPitchersTable:     awayPitchersTable,
-		homeBattersTable:      homePlayerTable,
-		homePitchersTable:     homePitchersTable,
-		linescoreTable:        linescoreTable,
-		isAwayTableFocused:    initialAwayTableFocused,
-		isBattersTableFocused: initialBatterTableFocused,
-		boxscore:              *boxscore,
-		help:                  help.New(),
+		game:              game,
+		previousModel:     previousModel,
+		linescoreTable:    linescoreTable,
+		playerTables:      playerTables,
+		focusedTableIndex: TABLE_TO_INDEX_MAP["awayBatters"],
+		boxscore:          *boxscore,
+		help:              help.New(),
 	}
 
 	return &gameScreenModel
