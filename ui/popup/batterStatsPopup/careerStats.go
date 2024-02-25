@@ -59,7 +59,7 @@ func buildBattingStatsTable(battingStats mlb.HittingStats, width int) table.Mode
 		"avg": battingStats.Avg,
 		"obp": battingStats.Obp,
 		"slg": battingStats.Slg,
-		"ops": battingStats.Obp,
+		"ops": battingStats.Ops,
 	})
 
 	table := table.New(tableColumns).WithRows([]table.Row{tableRow}).WithTargetWidth(width)

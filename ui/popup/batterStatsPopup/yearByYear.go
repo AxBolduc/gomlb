@@ -88,7 +88,7 @@ func statSplitToYearByYearHittingRow(split mlb.HittingStatsSplit) table.Row {
 		"avg":    split.Stat.Avg,
 		"obp":    split.Stat.Obp,
 		"slg":    split.Stat.Slg,
-		"ops":    split.Stat.Obp,
+		"ops":    split.Stat.Ops,
 	})
 }
 
