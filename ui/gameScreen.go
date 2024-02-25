@@ -150,7 +150,7 @@ func (m GameScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, gameScreenKM.DownTable):
 			m = m.updateFocusedTableIndex(DIRECTIONS["DOWN"])
 		case key.Matches(msg, gameScreenKM.Enter):
-			batterId := m.playerTables[TABLE_TO_INDEX_MAP["awayBatters"]].HighlightedRow().Data["id"].(int)
+			batterId := m.playerTables[m.focusedTableIndex].HighlightedRow().Data["id"].(int)
 			m.popup = batterStatsPopup.New(m.View(), batterId, m.width-2*constants.PopupHPadding, m.height-2*constants.PopupVPadding)
 			if m.popup != nil {
 				gameScreenKM.SetEnabled(false)

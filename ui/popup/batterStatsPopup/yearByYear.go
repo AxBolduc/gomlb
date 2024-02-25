@@ -67,9 +67,15 @@ func buildYearByYearHittingStatsTable(hittingStats []mlb.HittingStatsSplit, widt
 }
 
 func statSplitToYearByYearHittingRow(split mlb.HittingStatsSplit) table.Row {
+
+	rowTeam := split.Team.Name
+	if rowTeam == "" {
+		rowTeam = "Total"
+	}
+
 	return table.NewRow(table.RowData{
 		"season": split.Season,
-		"team":   split.Team.Name,
+		"team":   rowTeam,
 		"ab":     split.Stat.AtBats,
 		"r":      split.Stat.Runs,
 		"h":      split.Stat.Hits,
