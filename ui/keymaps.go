@@ -10,6 +10,7 @@ type GamesListKM struct {
 	Quit        key.Binding
 	Enter       key.Binding
 	FocusPicker key.Binding
+  Jump        key.Binding
 }
 
 func (k GamesListKM) FullHelp() [][]key.Binding {
@@ -17,7 +18,7 @@ func (k GamesListKM) FullHelp() [][]key.Binding {
 }
 
 func (k GamesListKM) ShortHelp() []key.Binding {
-	return []key.Binding{k.Up, k.Down, k.Previous, k.Next, k.Quit, k.Enter}
+	return []key.Binding{k.Up, k.Down, k.Previous, k.Next, k.Jump, k.Quit, k.Enter}
 }
 
 type GameScreenKM struct {

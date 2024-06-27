@@ -193,7 +193,6 @@ func (m GameScreenModel) updateFocusedTableIndex(direction string) GameScreenMod
 }
 
 func (m GameScreenModel) View() string {
-
 	if m.popup != nil {
 		return m.popup.View()
 	}
