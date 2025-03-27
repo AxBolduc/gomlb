@@ -9,7 +9,7 @@ import (
 	"github.com/evertras/bubble-table/table"
 )
 
-func getCareerHittingStats(batterId int) *mlb.HittingStats {
+func getCareerHittingStats(batterId int) *mlb.HittingStatsSplit {
 	statsRepo := repositories.NewPlayerStatsRepository()
 	batterStats, err := statsRepo.GetCareerStatsByPlayerId(batterId)
 	if err != nil {
@@ -25,11 +25,10 @@ func getCareerHittingStats(batterId int) *mlb.HittingStats {
 		log.Printf("No splits for batting stast for player %d", batterId)
 	}
 
-	return &batterStats.Stats[0].Splits[0].Stat
+	return &batterStats.Stats[0].Splits[0]
 }
 
 func buildBattingStatsTable(battingStats mlb.HittingStats, width int) table.Model {
-
 	tableColumns := []table.Column{
 		table.NewFlexColumn("ab", "AB", 1).WithStyle(lipgloss.NewStyle().AlignHorizontal(lipgloss.Center)),
 		table.NewFlexColumn("r", "R", 1).WithStyle(lipgloss.NewStyle().AlignHorizontal(lipgloss.Center)),

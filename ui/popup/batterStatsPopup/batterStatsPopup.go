@@ -10,6 +10,7 @@ import (
 )
 
 type Model struct {
+	playerName                string
 	popup                     popup.Popup
 	careerHittingStats        *mlb.HittingStats
 	yearByYearHittingStats    *mlb.PlayerHittingStats
@@ -67,9 +68,13 @@ func (p Model) Resize(msg tea.WindowSizeMsg, bgRaw string) popup.IPopup {
 }
 
 func New(bg string, batterId int, width int, height int) Model {
-	title := fmt.Sprintf("Batting stats for player %d", batterId)
+	hittingStatsResponse := getCareerHittingStats(batterId)
 
-	hittingStats := getCareerHittingStats(batterId)
+	playerName := hittingStatsResponse.Player.FullName
+	hittingStats := &hittingStatsResponse.Stat
+
+	title := fmt.Sprintf("Batting stats for %s", playerName)
+
 	yearByYearHittingStats := getYearByYearHittingStats(batterId)
 
 	popup := popup.NewPopup(bg, title, width, height)
@@ -77,6 +82,7 @@ func New(bg string, batterId int, width int, height int) Model {
 	return Model{
 		popup:                  popup,
 		batterId:               batterId,
+		playerName:             playerName,
 		careerHittingStats:     hittingStats,
 		yearByYearHittingStats: yearByYearHittingStats,
 		windowWidth:            width - 2,

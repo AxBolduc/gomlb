@@ -102,7 +102,6 @@ func (m GameScreenModel) Init() tea.Cmd {
 }
 
 func (m GameScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
@@ -206,14 +205,22 @@ func (m GameScreenModel) renderMainScreen() string {
 	battersTables := lipgloss.JoinHorizontal(lipgloss.Top, m.playerTables[TABLE_TO_INDEX_MAP["awayBatters"]].View(), m.playerTables[TABLE_TO_INDEX_MAP["homeBatters"]].View())
 	pitchersTables := lipgloss.JoinHorizontal(lipgloss.Top, m.playerTables[TABLE_TO_INDEX_MAP["awayPitchers"]].View(), m.playerTables[TABLE_TO_INDEX_MAP["homePitchers"]].View())
 
+	content := lipgloss.JoinVertical(lipgloss.Center, scoreBox, m.linescoreTable.View(), battersTables, pitchersTables)
+
+	contentHeight := lipgloss.Height(content)
+
+	helpTextHeight := lipgloss.Height(m.help.View(gameScreenKM))
+
+	helpPadding := m.height - contentHeight - helpTextHeight
+
 	helpContainer := lipgloss.NewStyle().
 		SetString(m.help.View(gameScreenKM)).
 		Width(m.width).
 		Align(lipgloss.Left).
-		PaddingTop(1).
+		PaddingTop(helpPadding).
 		String()
 
-	ui := lipgloss.JoinVertical(lipgloss.Center, scoreBox, m.linescoreTable.View(), battersTables, pitchersTables, helpContainer)
+	ui := lipgloss.JoinVertical(lipgloss.Center, content, helpContainer)
 
 	return constants.DocStyle.Render(ui)
 }
@@ -235,10 +242,10 @@ func InitGameScreenModel(game mlb.Game, previousModel Model) *GameScreenModel {
 	homePitchers := positionListToPlayerList(boxscore.Teams.Home.Pitchers, boxscore.Teams.Home.Players)
 
 	awayBattersTable := components.BuildBatterStatsTable(awayBatters, initialAwayTableFocused && initialBatterTableFocused)
-	awayPitchersTable := components.BuildPitcherStatsTable(awayPitchers, initialAwayTableFocused && !initialBatterTableFocused).WithPageSize(5)
+	awayPitchersTable := components.BuildPitcherStatsTable(awayPitchers, initialAwayTableFocused && !initialBatterTableFocused).WithPageSize(10)
 
 	homeBattersTable := components.BuildBatterStatsTable(homeBatters, !initialAwayTableFocused && initialBatterTableFocused)
-	homePitchersTable := components.BuildPitcherStatsTable(homePitchers, initialAwayTableFocused && !initialBatterTableFocused).WithPageSize(5)
+	homePitchersTable := components.BuildPitcherStatsTable(homePitchers, initialAwayTableFocused && !initialBatterTableFocused).WithPageSize(10)
 
 	playerTables := []table.Model{awayBattersTable, homeBattersTable, awayPitchersTable, homePitchersTable}
 
